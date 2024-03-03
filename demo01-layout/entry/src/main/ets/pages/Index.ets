@@ -12,6 +12,7 @@ struct Index {
         Demo03()
         Demo04()
         Demo05()
+        Demo06()
       }
       .padding(20)
       .justifyContent(FlexAlign.Start)
@@ -147,6 +148,42 @@ struct Demo05 {
           .backgroundColor(item)
         })
       }
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+  }
+}
+
+// 常用组件示例
+@Component
+struct Demo06 {
+  @State title: string = '6、常用组件';
+
+  build() {
+    Column({ space: 20 }) {
+      Text(this.title).fontSize(20)
+
+      Button('点击', { type: ButtonType.Normal }).width(200).height(40).borderRadius(20)
+
+      TextInput({ placeholder: '请输入' }).type(InputType.Password)
+
+      Radio({ value: 'radio1', group: 'sex' }).checked(true)
+      Radio({ value: 'radio2', group: 'sex' })
+
+      Toggle({ type: ToggleType.Switch, isOn: true })
+
+      Progress({ value: 30, total: 100, type: ProgressType.Linear })
+      Progress({ value: 40, total: 100, type: ProgressType.Capsule })
+      Progress({ value: 50, total: 100, type: ProgressType.Ring })
+      Progress({ value: 60, total: 100, type: ProgressType.Eclipse })
+      Progress({ value: 70, total: 100, type: ProgressType.ScaleRing })
+
+      // 本地图片
+      Image('/assets/img1.jpg')
+      // 网络图片，需要开通网络权限
+      Image('https://img1.baidu.com/it/u=217097218,2913631817&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500')
+      // resourceStr
+      Image($r('app.media.startIcon')).width(200)
     }
     .width('100%')
     .alignItems(HorizontalAlign.Start)
