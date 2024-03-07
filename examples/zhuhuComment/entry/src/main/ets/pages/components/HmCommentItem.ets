@@ -1,8 +1,10 @@
-import { ReplyItemModel } from '../models/index'
+import { ReplyItem, ReplyItemModel } from '../models/index'
 
 @Component
 struct HmCommentItem {
-  @Prop replyItem: ReplyItemModel;
+  @State replyItem: ReplyItemModel = new ReplyItemModel({} as ReplyItem);
+
+  updateReplyItem: (replyItem: ReplyItemModel) => void = () => {};
 
   build() {
     Row() {
@@ -29,15 +31,15 @@ struct HmCommentItem {
             Image($r('app.media.ic_public_like'))
               .width(12)
               .height(12)
-              .fillColor(`${this.replyItem.likeFlag ? '' : '#cacaca'}`)
+              .fillColor(this.replyItem.likeFlag ? Color.Red : '#cacaca')
 
             Text(`${this.replyItem.likeNum}`)
               .fontSize(12)
-              .fontColor(`${this.replyItem.likeFlag ? '' : '#cacaca'}`)
-              .margin({ left: 2 })
+              .fontColor(this.replyItem.likeFlag ? Color.Red : '#cacaca')
+              .margin({ left: 3 })
           }
           .onClick(() => {
-            this.replyItem.likeFlag = !this.replyItem.likeFlag;
+            this.updateReplyItem(this.replyItem);
           })
         }
         .width('100%')

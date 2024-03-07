@@ -14,6 +14,7 @@ struct HmReplyInput {
         .onClick(() => {
           console.log('inputValue: ', this.inputValue)
           this.publishComment(this.inputValue);
+          this.inputValue = '';
         })
     }
     .width('100%')

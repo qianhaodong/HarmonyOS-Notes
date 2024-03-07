@@ -82,18 +82,49 @@ struct Index {
     })
   ];
 
-  // 添加品论方法
+  // 添加评论方法
   addComment(content: string) {
     this.commentList.unshift(new ReplyItemModel({
       id: Math.random(),
       avatar: $r('app.media.2'),
       author: '韭菜的春天',
       content,
-      time: `${(new Date().getMonth() +1).toString().padStart(2, '0')}-${(new Date().getDay()).toString().padStart(2, '0')}`,
+      time: `${(new Date().getMonth() + 1).toString().padStart(2, '0')}-${(new Date().getDate()).toString().padStart(2, '0')}`,
       area: '深圳',
       likeNum: 0,
       likeFlag: false
     }));
+  }
+
+  // 更新评论方法
+  changeReplyItem(replyItem: ReplyItemModel) {
+    // 点赞数量改变
+    if (replyItem.likeFlag) {
+      replyItem.likeNum--;
+    } else {
+      replyItem.likeNum++;
+    }
+    replyItem.likeFlag = !replyItem.likeFlag;
+
+    const index = this.commentList.findIndex((item: ReplyItemModel) => item.id === replyItem.id);
+    // 这种写法不会生效，数组引用没有改变，不会触发更新
+    // this.commentList[index] = replyItem;
+
+    // 方法一：使用数组更新方法
+    // this.commentList.splice(index, 1, replyItem);
+
+    // 方法二：重新创建一个对象
+    this.commentList[index] = new ReplyItemModel(replyItem);
+  }
+
+  changeFirstReplyItem() {
+    // 点赞数量改变
+    if (this.authorItem.likeFlag) {
+      this.authorItem.likeNum--;
+    } else {
+      this.authorItem.likeNum++;
+    }
+    this.authorItem.likeFlag = !this.authorItem.likeFlag;
   }
 
   build() {
@@ -102,9 +133,12 @@ struct Index {
         Column() {
           HmNavBar({ title: this.title })
           HmCommentItem({
-            replyItem: this.authorItem
+            replyItem: this.authorItem,
+            updateReplyItem: () => {
+              this.changeFirstReplyItem();
+            }
           })
-            .padding({ top: 20, bottom: 20 })
+          .padding({ top: 20, bottom: 20 })
         }
         .width('100%')
       }
@@ -123,7 +157,13 @@ struct Index {
         List() {
           ForEach(this.commentList, (item: ReplyItemModel) => {
             ListItem() {
-              HmCommentItem({ replyItem: item })
+              HmCommentItem({
+                replyItem: item,
+                // 使用箭头函数，确保 this 在当前组件
+                updateReplyItem: (replyItem: ReplyItemModel) => {
+                  this.changeReplyItem(replyItem);
+                }
+              })
             }
             .padding({ bottom: 20 })
           })
