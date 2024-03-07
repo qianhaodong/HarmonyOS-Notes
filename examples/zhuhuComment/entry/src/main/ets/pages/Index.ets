@@ -1,13 +1,10 @@
-import { HmNavBar } from './components/HmNavBar';
-import { HmCommentItem } from './components/HmCommentItem';
-import { HmReplyInput } from  './components/HmReplyInput';
+import { HmNavBar, HmCommentItem, HmReplyInput} from './components/index';
 import { ReplyItemModel} from './models/index';
 
 @Entry
 @Component
 struct Index {
   @State title: string = '评论回复';
-  // scroller: Scroller = new Scroller();
   @State authorItem: ReplyItemModel = new ReplyItemModel({
     id: 999,
     avatar: $r('app.media.author'),
@@ -82,6 +79,8 @@ struct Index {
     })
   ];
 
+  scroller: Scroller = new Scroller();
+
   // 添加评论方法
   addComment(content: string) {
     this.commentList.unshift(new ReplyItemModel({
@@ -94,6 +93,14 @@ struct Index {
       likeNum: 0,
       likeFlag: false
     }));
+
+    // 添加评论后，滚动到列表顶部
+    // this.scroller.scrollEdge(Edge.Top);
+    this.scroller.scrollTo({
+      xOffset: 0,
+      yOffset: 0,
+      animation: true
+    })
   }
 
   // 更新评论方法
@@ -117,6 +124,7 @@ struct Index {
     this.commentList[index] = new ReplyItemModel(replyItem);
   }
 
+  // 更新顶部评论的方法
   changeFirstReplyItem() {
     // 点赞数量改变
     if (this.authorItem.likeFlag) {
@@ -129,6 +137,7 @@ struct Index {
 
   build() {
     Column() {
+      // 顶部评论
       Row() {
         Column() {
           HmNavBar({ title: this.title })
@@ -149,12 +158,13 @@ struct Index {
         }
       })
 
+      // 评论列表
       Column() {
         Text('评论列表')
           .padding(20)
 
         // 使用List组件（可滚动，有回弹效果）
-        List() {
+        List({ scroller: this.scroller }) {
           ForEach(this.commentList, (item: ReplyItemModel) => {
             ListItem() {
               HmCommentItem({
@@ -185,6 +195,7 @@ struct Index {
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
 
+      // 底部回复
       HmReplyInput({
         publishComment: (content: string) => {
           this.addComment(content);

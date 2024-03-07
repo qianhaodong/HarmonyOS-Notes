@@ -1,7 +1,6 @@
 @Component
 struct HmReplyInput {
-  @State
-  inputValue: string = '';
+  @State inputValue: string = '';
   publishComment: (content: string) => void = () => {};
 
   build() {
@@ -9,12 +8,19 @@ struct HmReplyInput {
       TextInput({ text: $$this.inputValue, placeholder: '回复~' })
         .layoutWeight(1)
         .height(40)
+        .onSubmit(() => {
+          if (this.inputValue) {
+            this.publishComment(this.inputValue);
+            this.inputValue = '';
+          }
+        })
 
       Button('发布')
         .onClick(() => {
-          console.log('inputValue: ', this.inputValue)
-          this.publishComment(this.inputValue);
-          this.inputValue = '';
+          if (this.inputValue) {
+            this.publishComment(this.inputValue);
+            this.inputValue = '';
+          }
         })
     }
     .width('100%')
