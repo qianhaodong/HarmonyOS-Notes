@@ -137,11 +137,11 @@ struct MineContent {
     .width('100%')
     .height('100%')
     .padding({ left: 16, right: 16 })
-    .backgroundColor('#f5f5f5')
-    /*.linearGradient({
+    // .backgroundColor('#f5f5f5')
+    .linearGradient({
       direction: GradientDirection.Bottom,
-      colors: [['rgba(255, 255, 255, 0.3)', 0], ['#fff', 0.5]]
-    })*/
+      colors: [['#ffbabde9', 0], ['#fff', 1]]
+    })
   }
 }
 
