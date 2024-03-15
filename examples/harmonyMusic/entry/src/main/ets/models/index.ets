@@ -17,3 +17,11 @@ export interface RecommendListType {
   title: string
   count: string
 }
+
+export interface SongItemType {
+  img: ResourceStr
+  name: string
+  author: string
+  url: ResourceStr
+  id: string
+}
