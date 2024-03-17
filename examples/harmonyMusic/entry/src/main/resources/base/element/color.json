@@ -11,6 +11,10 @@
     {
       "name": "primary_dark",
       "value": "#4bb0c4"
+    },
+    {
+      "name": "color_white",
+      "value": "#f1f1f1"
     }
   ]
 }

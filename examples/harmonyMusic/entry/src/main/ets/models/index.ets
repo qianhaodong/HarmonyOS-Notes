@@ -25,3 +25,17 @@ export interface SongItemType {
   url: ResourceStr
   id: string
 }
+
+export interface ButtonListType {
+  img: ResourceStr
+  title: string
+}
+
+export interface MomentListType {
+  author: string
+  avatar: ResourceStr
+  content: string
+  comment: number
+  like: number
+  song: SongItemType
+}
