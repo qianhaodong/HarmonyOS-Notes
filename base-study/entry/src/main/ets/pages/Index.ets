@@ -1,17 +1,45 @@
+import { router } from '@kit.ArkUI';
+
+interface DemoType {
+  name: string
+  pageUrl: string
+}
+
 @Entry
 @Component
 struct Index {
-  @State message: string = 'Hello World';
+  demoList: DemoType[] = [
+    {
+      name: '@State装饰器-示例',
+      pageUrl: 'pages/DemoState'
+    },
+    {
+      name: '@Prop装饰器-示例',
+      pageUrl: 'pages/DemoProp'
+    },
+    {
+      name: '@Link装饰器-示例',
+      pageUrl: 'pages/DemoLink'
+    },
+    {
+      name: '@Provide、@Consume装饰器-示例',
+      pageUrl: 'pages/DemoProvide'
+    },
+  ];
 
   build() {
-    Row() {
-      Column() {
-        Text(this.message)
-          .fontSize(50)
-          .fontWeight(FontWeight.Bold)
-      }
-      .width('100%')
+    Column({ space: 10 }) {
+      ForEach(this.demoList, (item: DemoType) => {
+        Button(item.name)
+          .onClick(() => {
+            router.pushUrl({
+              url: item.pageUrl
+            })
+          })
+      })
     }
+    .width('100%')
     .height('100%')
+    .padding(20)
   }
 }

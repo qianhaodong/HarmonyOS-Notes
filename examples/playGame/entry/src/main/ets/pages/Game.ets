@@ -1,5 +1,5 @@
 import { router } from '@kit.ArkUI';
-import { PlanModel } from '../models';
+import { Plan, PlanModel } from '../models';
 
 @Builder function CreatePlan(sizeX: number, sizeY: number, src: ResourceStr) {
   Image(src)
@@ -45,9 +45,9 @@ struct Game {
     planImgBoomSrc: $r('app.media.bffjbx'),
     planImgSrc: $r('app.media.wdfj')
   });
-
   // 敌方飞机列表
   @State enemyPlanList: PlanModel[] = [];
+  @State enemyPlan: PlanModel = this.createEnemyPlan(1, 324, -100, 34, 24, 3, 100, 200, $r('app.media.xfjbz'), $r('app.media.enemy1_fly_1'));
 
   // 定时器 timerId
   bgTimer: number = 0;
@@ -61,13 +61,65 @@ struct Game {
 
   mark: number = 0;
   gameMove() {
-    this.backgroundY += 4;
+    this.backgroundY += 6;
+
+    // 敌方飞机移动
+    this.enemyPlan.planMove();
+
 
     //
     this.mark++;
-    if (this.mark % 5 === 0) {
-
+    if (this.mark % 150 === 0) {
+      // 创建大型飞机
+      const bigPlan = this.createEnemyPlan(3, 248, -100, 110, 164, 1, 300, 600, $r('app.media.dfjbz'), $r('app.media.enemy2_fly_1'));
+      this.enemyPlanList.push(bigPlan);
+    } else if (this.mark % 60 === 0) {
+      // 创建中型飞机
+      const middlePlan = this.createEnemyPlan(2, 312, -100, 46, 60, 2, 200, 400, $r('app.media.zfjbz'), $r('app.media.enemy3_fly_1'));
+      this.enemyPlanList.push(middlePlan);
+    } else if (this.mark % 20 === 0) {
+      // 创建小型飞机
+      const smallPlan = this.createEnemyPlan(1, 324, -100, 34, 24, 3, 100, 200, $r('app.media.xfjbz'), $r('app.media.enemy1_fly_1'));
+      this.enemyPlanList.push(smallPlan);
     }
+
+    // 让敌方飞机移动
+    for (let i = 0; i < this.enemyPlanList.length; i++) {
+      this.enemyPlanList[i].planMove();
+    }
+  }
+
+  // 创建敌方飞机
+  createEnemyPlan(
+    bf: number,
+    x: number,
+    y: number,
+    sizeX: number,
+    sizeY: number,
+    speed: number,
+    score: number,
+    dieTime: number,
+    imgBoomSrc: ResourceStr,
+    imgSrc: ResourceStr
+  ): PlanModel {
+    const enemyPlan: PlanModel = new PlanModel({
+      planBf: bf,
+      planX: this.createRandom(x),
+      planY: y,
+      planSizeX: sizeX,
+      planSizeY: sizeY,
+      planSpeed: speed,
+      planScore: score,
+      planDieTime: dieTime,
+      planImgBoomSrc: imgBoomSrc,
+      planImgSrc: imgSrc,
+    });
+    return enemyPlan;
+  }
+
+  // 生成随机数
+  createRandom(a: number): number {
+    return Math.floor(Math.random() * a);
   }
 
   // 销毁定时器
@@ -97,18 +149,32 @@ struct Game {
         Stack() {
           // 敌方飞机出现区域
           Column() {
-            Row() {
+            /*Row() {
               CreatePlan(
-                this.ourPlan.planSizeX,
-                this.ourPlan.planSizeY,
-                this.ourPlan.planImgSrc
+                this.enemyPlan.planSizeX,
+                this.enemyPlan.planSizeY,
+                this.enemyPlan.planImgSrc
               )
             }
-            .backgroundColor('rgba(0,0,0,0.3)')
-            /*.position({
-              x: this.ourPlan.planX,
-              y: this.ourPlan.planY,
+            // .backgroundColor('rgba(0,0,0,0.3)')
+            .position({
+              x: this.enemyPlan.planX,
+              y: this.enemyPlan.planY,
             })*/
+            ForEach(this.enemyPlanList, (item: PlanModel) => {
+              Row() {
+                CreatePlan(
+                  item.planSizeX,
+                  item.planSizeY,
+                  item.planImgSrc
+                )
+              }
+              // .backgroundColor('rgba(0,0,0,0.3)')
+              .position({
+                x: item.planX,
+                y: item.planY,
+              })
+            })
           }
 
           Text(`分数：${this.score}`)
