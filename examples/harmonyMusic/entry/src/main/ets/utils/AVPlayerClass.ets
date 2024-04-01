@@ -1,0 +1,157 @@
+import media from '@ohos.multimedia.media';
+import { SongItemType } from '../models';
+import { emitter } from '@kit.BasicServicesKit';
+import { EmitEventType } from '../constants/EventConstants';
+
+export default class AVPlayerClass {
+  // 1、创建一个播放器
+  static player: media.AVPlayer | null = null
+
+  // 播放状态
+  static isPlay: boolean = false
+  // 播放模式
+  static playMode: 'auto' | 'repeat' | 'random' = 'auto'
+
+  // 歌曲总时长
+  static duration: number = 0
+  // 歌曲播放进度时长
+  static time: number = 0
+  // 播放列表
+  static playList: SongItemType[] = []
+  // 当前播放歌曲索引
+  static playIndex: number = 0
+
+  // 2、初始化
+  static async init() {
+    AVPlayerClass.player = await media.createAVPlayer();
+
+    // 监听播放状态事件（状态机）
+    AVPlayerClass.player.on('stateChange', (state: string, reason: media.StateChangeReason) => {
+      switch (state) {
+        case 'initialized':
+          AVPlayerClass.player?.prepare();
+          break;
+        case 'prepared':
+          AVPlayerClass.player?.play();
+          AVPlayerClass.isPlay = true;
+          break;
+        case 'completed':
+          // TODO - 判断播放模式
+          AVPlayerClass.next();
+          break;
+        default:
+          break;
+      }
+    })
+
+    // 监听进度条事件，获取播放总时长
+    AVPlayerClass.player.on('durationUpdate', (duration: number) => {
+      // console.log('[player]:durationUpdate >> ', duration)
+      AVPlayerClass.duration = duration;
+    })
+
+    // 监听播放进度事件，获取当前播放进度
+    AVPlayerClass.player.on('timeUpdate', (time: number) => {
+      // console.log('[player]:durationUpdate >> ', time)
+      AVPlayerClass.time = time;
+
+      // 发布事件，传递数据到各页面
+      const currentItem = AVPlayerClass.playList[AVPlayerClass.playIndex];
+      emitter.emit({ eventId: EmitEventType.UPDATE_STATE }, {
+        data: {
+          playState: {
+            img: currentItem.img,
+            name: currentItem.name,
+            author: currentItem.author,
+            url: currentItem.url,
+            time: AVPlayerClass.time,
+            duration: AVPlayerClass.duration,
+            isPlay: AVPlayerClass.isPlay,
+            playMode: AVPlayerClass.playMode,
+            playIndex: AVPlayerClass.playIndex,
+            playList: AVPlayerClass.playList,
+          }
+        }
+      })
+    })
+  }
+
+  // 单曲播放
+  static singlePlay(song: SongItemType) {
+    // 添加到播放列表，并从头播放
+    if (AVPlayerClass.player) {
+      // 判断歌曲是否存在
+      const cIndex = AVPlayerClass.playList.findIndex(item => item.id === song.id);
+      if (cIndex !== -1) {
+        // 判断是否是当前播放的
+        if (song.url === AVPlayerClass.player.url) {
+          // 是：重新播放
+          AVPlayerClass.changePlay();
+        } else {
+          // 否：切换歌曲（切换索引）
+          AVPlayerClass.playIndex = cIndex;
+          AVPlayerClass.changePlay()
+        }
+      } else {
+        AVPlayerClass.playList.unshift(song);
+        AVPlayerClass.playIndex = 0;
+        AVPlayerClass.changePlay()
+      }
+    }
+  }
+
+  // 切换歌曲
+  static async changePlay() {
+    if (AVPlayerClass.player) {
+      // 将播放器设置为闲置状态
+      await AVPlayerClass.player.reset();
+
+      // 重置播放时间
+      AVPlayerClass.duration = 0;
+      AVPlayerClass.time = 0;
+
+      // 切歌
+      AVPlayerClass.player.url = AVPlayerClass.playList[AVPlayerClass.playIndex].url;
+    }
+  }
+
+  // 暂停
+  static pausePlay() {
+    if (AVPlayerClass.player) {
+      AVPlayerClass.player.pause()
+      AVPlayerClass.isPlay = false;
+    }
+  }
+
+  // 继续
+  static continuePlay() {
+    if (AVPlayerClass.player) {
+      AVPlayerClass.player.play()
+      AVPlayerClass.isPlay = true;
+    }
+  }
+
+  // 上一首
+  static prev() {
+    if (AVPlayerClass.player) {
+      if (AVPlayerClass.playIndex === 0) {
+        AVPlayerClass.playIndex = AVPlayerClass.playList.length - 1;
+      } else if (AVPlayerClass.playIndex > 0) {
+        AVPlayerClass.playIndex--;
+      }
+      AVPlayerClass.changePlay()
+    }
+  }
+
+  // 下一首
+  static next() {
+    if (AVPlayerClass.player) {
+      if (AVPlayerClass.playIndex === AVPlayerClass.playList.length - 1) {
+        AVPlayerClass.playIndex = 0;
+      } else if (AVPlayerClass.playIndex < AVPlayerClass.playList.length - 1) {
+        AVPlayerClass.playIndex++;
+      }
+      AVPlayerClass.changePlay()
+    }
+  }
+}

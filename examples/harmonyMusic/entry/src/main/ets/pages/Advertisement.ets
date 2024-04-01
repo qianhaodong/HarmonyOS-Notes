@@ -10,7 +10,8 @@ struct Advertisement {
   countdownHandler() {
     this.timer = setInterval(() => {
       this.countdown--;
-      if (this.timer && this.countdown <= 0) {
+      console.log('countdownHandler: ', this.timer)
+      if ((this.timer || this.timer === 0) && this.countdown <= 0) {
         console.log('[countdownHandler]:clearInterval');
         clearInterval(this.timer);
         this.timer = null;

@@ -22,7 +22,7 @@ export interface SongItemType {
   img: ResourceStr
   name: string
   author: string
-  url: ResourceStr
+  url: string
   id: string
 }
 
@@ -38,4 +38,17 @@ export interface MomentListType {
   comment: number
   like: number
   song: SongItemType
+}
+
+export interface PlayStateType {
+  img: ResourceStr
+  name: string
+  author: string
+  url: string
+  playIndex: number
+  time: number
+  duration: number
+  isPlay: boolean
+  playMode: 'auto' | 'repeat' | 'random'
+  playList: SongItemType[]
 }

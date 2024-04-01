@@ -1,5 +1,6 @@
 import { ButtonListType, SongItemType } from '../../models';
 import { songs } from '../../constants';
+import AVPlayerClass from '../../utils/AVPlayerClass';
 
 @Extend(Text) function textStyle() {
   .width(20)
@@ -139,6 +140,13 @@ struct Home {
               }
               .padding({ top: 10, bottom: 10 })
             }
+            .border({
+              width: { bottom: 1 },
+              color: '#12ec5c87'
+            })
+            .onClick(() => {
+              AVPlayerClass.singlePlay(item);
+            })
           })
         }
         .layoutWeight(1)
