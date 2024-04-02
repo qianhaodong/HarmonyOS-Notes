@@ -1,19 +1,20 @@
-import { PlayStateType, SongItemType } from '../models';
+import { PlayStateType } from '../models';
 import AVPlayerClass from '../utils/AVPlayerClass';
-import { songs } from '../constants/index';
 import { emitter } from '@kit.BasicServicesKit';
 import { defaultPlayState, EmitEventType } from '../constants/EventConstants';
 
 @Entry
 @Component
 struct Play {
-  @State songs: SongItemType[] = AVPlayerClass.playList;
-  @State playState: PlayStateType = defaultPlayState;
+  @State randomColor: string = 'rgb(0, 0, 0)';
+  @State randomMoveX: number = 0;
+  @State randomMoveY: number = 0;
+
+  @State @Watch('handleAnimate') playState: PlayStateType = defaultPlayState;
 
   aboutToAppear(): void {
     emitter.on({ eventId: EmitEventType.UPDATE_STATE }, (data) => {
       this.playState = data.data?.playState;
-      // console.log('this.playState: ', this.playState)
     })
   }
 
@@ -25,6 +26,13 @@ struct Play {
     minute = minute < 10 ? minute.toString().padStart(2, '0') : minute;
     second = second < 10 ? second.toString().padStart(2, '0') : second;
     return `${minute}:${second}`;
+  }
+
+  // 处理动画数据
+  handleAnimate() {
+    this.randomColor = `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)})`;
+    this.randomMoveX = 2 - Math.random() * 4;
+    this.randomMoveY = 2 - Math.random() * 4;
   }
 
   build() {
@@ -53,6 +61,10 @@ struct Play {
               .borderRadius(400)
               .clip(true)
               .aspectRatio(1)
+              .shadow({
+                radius: 50,
+                color: this.randomColor
+              })
             }
             .margin({ top: 50 })
             .width('90%')
@@ -65,7 +77,7 @@ struct Play {
               .width(200)
               .aspectRatio(1)
               .rotate({
-                angle: -55,
+                angle: this.playState.isPlay ? -45 : -55,
                 centerX: 100,
                 centerY: 30
               })
@@ -73,19 +85,56 @@ struct Play {
                 duration: 500
               })
           }
+          .margin({ bottom: 50 })
 
-          Column({ space: 8 }) {
-            Text(songs[0].name)
-              .fontSize(28)
-              .fontWeight(FontWeight.Bold)
-              .fontColor($r('app.color.primary_dark'))
-            Text(songs[0].author)
-              .fontSize(18)
-              .fontColor($r('app.color.primary_dark'))
+          Stack() {
+            Column({ space: 8 }) {
+              Text(this.playState.name)
+                .fontSize(28)
+                .fontWeight(FontWeight.Bold)
+                .fontColor($r('app.color.primary_dark'))
+              Text(this.playState.author)
+                .fontSize(18)
+                .fontColor($r('app.color.primary_dark'))
+            }
+            .layoutWeight(1)
+            .justifyContent(FlexAlign.Center)
+            .zIndex(1)
+            .translate({
+              x: this.randomMoveX,
+              y: this.randomMoveY
+            })
+
+            Column({ space: 8 }) {
+              Text(this.playState.name)
+                .fontSize(28)
+                .fontWeight(FontWeight.Bold)
+                .fontColor($r('app.color.primary_light'))
+              Text(this.playState.author)
+                .fontSize(18)
+                .fontColor($r('app.color.primary_light'))
+            }
+            .layoutWeight(1)
+            .justifyContent(FlexAlign.Center)
+            .zIndex(2)
+            .translate({
+              x: this.randomMoveY,
+              y: this.randomMoveX
+            })
+
+            Column({ space: 8 }) {
+              Text(this.playState.name)
+                .fontSize(28)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(Color.White)
+              Text(this.playState.author)
+                .fontSize(18)
+                .fontColor(Color.White)
+            }
+            .layoutWeight(1)
+            .justifyContent(FlexAlign.Center)
+            .zIndex(3)
           }
-          .layoutWeight(1)
-          .justifyContent(FlexAlign.Center)
-          // .zIndex(1)
         }
         .layoutWeight(1)
         .width('100%')
@@ -125,6 +174,7 @@ struct Play {
             Text(this.handleTime(this.playState.time))
               .fontSize(12)
               .fontColor($r('app.color.color_white'))
+
             Slider({
               value: this.playState.time,
               min: 0,
@@ -133,6 +183,12 @@ struct Play {
               .layoutWeight(1)
               .trackColor('#e1e1e1')
               .selectedColor(Color.White)
+              .onChange((value: number) => {
+                // console.log('slider-value: ', value)
+                const time = Math.floor(value);
+                AVPlayerClass.seekSlider(time);
+              })
+
             Text(this.handleTime(this.playState.duration))
               .fontSize(12)
               .fontColor($r('app.color.color_white'))
@@ -158,11 +214,11 @@ struct Play {
             }
             .onClick(() => {
               if (this.playState.playMode === 'auto') {
-                AVPlayerClass.playMode = 'repeat';
+                AVPlayerClass.changeMode('repeat');
               } else if (this.playState.playMode === 'repeat') {
-                AVPlayerClass.playMode = 'random';
+                AVPlayerClass.changeMode('random');
               } else if (this.playState.playMode === 'random') {
-                AVPlayerClass.playMode = 'auto';
+                AVPlayerClass.changeMode('auto');
               }
             })
 
@@ -183,7 +239,7 @@ struct Play {
                 if (AVPlayerClass.isPlay) {
                   AVPlayerClass.pausePlay();
                 } else {
-                  AVPlayerClass.continuePlay();
+                  AVPlayerClass.singlePlay(AVPlayerClass.playList[AVPlayerClass.playIndex]);
                 }
               })
 

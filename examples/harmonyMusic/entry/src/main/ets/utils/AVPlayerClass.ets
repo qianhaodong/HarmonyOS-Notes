@@ -1,5 +1,5 @@
 import media from '@ohos.multimedia.media';
-import { SongItemType } from '../models';
+import { PlayStateType, SongItemType } from '../models';
 import { emitter } from '@kit.BasicServicesKit';
 import { EmitEventType } from '../constants/EventConstants';
 
@@ -54,25 +54,13 @@ export default class AVPlayerClass {
     AVPlayerClass.player.on('timeUpdate', (time: number) => {
       // console.log('[player]:durationUpdate >> ', time)
       AVPlayerClass.time = time;
+      AVPlayerClass.updateState();
+    })
 
-      // 发布事件，传递数据到各页面
-      const currentItem = AVPlayerClass.playList[AVPlayerClass.playIndex];
-      emitter.emit({ eventId: EmitEventType.UPDATE_STATE }, {
-        data: {
-          playState: {
-            img: currentItem.img,
-            name: currentItem.name,
-            author: currentItem.author,
-            url: currentItem.url,
-            time: AVPlayerClass.time,
-            duration: AVPlayerClass.duration,
-            isPlay: AVPlayerClass.isPlay,
-            playMode: AVPlayerClass.playMode,
-            playIndex: AVPlayerClass.playIndex,
-            playList: AVPlayerClass.playList,
-          }
-        }
-      })
+    // 监听设置播放时长
+    AVPlayerClass.player.on('seekDone', () => {
+      AVPlayerClass.player?.play();
+      AVPlayerClass.isPlay = true;
     })
   }
 
@@ -85,8 +73,14 @@ export default class AVPlayerClass {
       if (cIndex !== -1) {
         // 判断是否是当前播放的
         if (song.url === AVPlayerClass.player.url) {
-          // 是：重新播放
-          AVPlayerClass.changePlay();
+          // 是：判断是否正在播放
+          if (AVPlayerClass.isPlay) {
+            // 是：重新播放
+            AVPlayerClass.changePlay();
+          } else {
+            // 否：继续播放（设置播放时长）
+            AVPlayerClass.seekSlider(AVPlayerClass.time);
+          }
         } else {
           // 否：切换歌曲（切换索引）
           AVPlayerClass.playIndex = cIndex;
@@ -123,35 +117,91 @@ export default class AVPlayerClass {
     }
   }
 
-  // 继续
-  static continuePlay() {
-    if (AVPlayerClass.player) {
-      AVPlayerClass.player.play()
-      AVPlayerClass.isPlay = true;
-    }
-  }
-
   // 上一首
   static prev() {
     if (AVPlayerClass.player) {
-      if (AVPlayerClass.playIndex === 0) {
-        AVPlayerClass.playIndex = AVPlayerClass.playList.length - 1;
-      } else if (AVPlayerClass.playIndex > 0) {
-        AVPlayerClass.playIndex--;
+      if (!AVPlayerClass.playList.length) return;
+
+      // 判断播放模式
+      if (AVPlayerClass.playMode === 'random' && AVPlayerClass.playList.length > 1) {
+        // 随机播放
+        const len = AVPlayerClass.playList.length;
+        let index = 0;
+        do {
+          index = Math.floor(Math.random() * len);
+        } while (index === AVPlayerClass.playIndex)
+
+        // 上面do-while循环结束后，则拿到非自身的索引
+        AVPlayerClass.playIndex = index;
+      } else {
+        if (AVPlayerClass.playIndex === 0) {
+          AVPlayerClass.playIndex = AVPlayerClass.playList.length - 1;
+        } else if (AVPlayerClass.playIndex > 0) {
+          AVPlayerClass.playIndex--;
+        }
       }
-      AVPlayerClass.changePlay()
+      AVPlayerClass.singlePlay(AVPlayerClass.playList[AVPlayerClass.playIndex]);
     }
   }
 
   // 下一首
   static next() {
     if (AVPlayerClass.player) {
-      if (AVPlayerClass.playIndex === AVPlayerClass.playList.length - 1) {
-        AVPlayerClass.playIndex = 0;
-      } else if (AVPlayerClass.playIndex < AVPlayerClass.playList.length - 1) {
-        AVPlayerClass.playIndex++;
+      if (!AVPlayerClass.playList.length) return;
+
+      // 判断播放模式
+      if (AVPlayerClass.playMode === 'random' && AVPlayerClass.playList.length > 1) {
+        const len = AVPlayerClass.playList.length;
+        let index = 0;
+        do {
+          index = Math.floor(Math.random() * len);
+        } while (index === AVPlayerClass.playIndex)
+
+        // 上面do-while循环结束后，则拿到非自身的索引
+        AVPlayerClass.playIndex = index;
+      } else {
+        if (AVPlayerClass.playIndex === AVPlayerClass.playList.length - 1) {
+          AVPlayerClass.playIndex = 0;
+        } else if (AVPlayerClass.playIndex < AVPlayerClass.playList.length - 1) {
+          AVPlayerClass.playIndex++;
+        }
       }
-      AVPlayerClass.changePlay()
+      AVPlayerClass.singlePlay(AVPlayerClass.playList[AVPlayerClass.playIndex]);
     }
+  }
+
+  // 改变进度
+  static seekSlider(time: number) {
+    if (AVPlayerClass.player) {
+      AVPlayerClass.player.seek(time);
+    }
+  }
+
+  // 改变播放模式
+  static changeMode(mode: 'auto' | 'repeat' | 'random') {
+    AVPlayerClass.playMode = mode;
+    AVPlayerClass.updateState();
+  }
+
+  // 更新页面状态
+  static updateState() {
+    // 发布事件，传递数据到各页面
+    const currentItem = AVPlayerClass.playList[AVPlayerClass.playIndex];
+    emitter.emit({ eventId: EmitEventType.UPDATE_STATE }, {
+      data: {
+        playState: {
+          img: currentItem.img,
+          name: currentItem.name,
+          author: currentItem.author,
+          url: currentItem.url,
+          time: AVPlayerClass.time,
+          duration: AVPlayerClass.duration,
+          isPlay: AVPlayerClass.isPlay,
+          playMode: AVPlayerClass.playMode,
+          playIndex: AVPlayerClass.playIndex,
+          playList: AVPlayerClass.playList,
+        } as PlayStateType
+      }
+    });
   }
 }

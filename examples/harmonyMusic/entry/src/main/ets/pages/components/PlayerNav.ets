@@ -40,7 +40,7 @@ struct PlayerNav {
             if (AVPlayerClass.isPlay) {
               AVPlayerClass.pausePlay();
             } else {
-              AVPlayerClass.continuePlay();
+              AVPlayerClass.singlePlay(AVPlayerClass.playList[AVPlayerClass.playIndex]);
             }
           })
         Image($r('app.media.ic_next'))
