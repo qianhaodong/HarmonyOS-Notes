@@ -9,8 +9,8 @@ struct Find {
         .fontColor('#fff')
         .margin({ bottom: 20 })
 
-      List({ space: 10 }) {
-        ForEach(songs, (item: SongItemType) => {
+      List({ space: 12 }) {
+        ForEach(songs, (item: SongItemType, index) => {
           ListItem() {
             Row() {
               Image(item.img)
@@ -34,13 +34,14 @@ struct Find {
                 .fillColor('#aaa9af')
             }
           }
+          .padding({ bottom: index === songs.length - 1 ? 20 : 0 })
         })
       }
       .layoutWeight(1)
     }
     .width('100%')
     .height('100%')
-    .padding(20)
+    .padding({ top: 20, right: 20, left: 20 })
     .alignItems(HorizontalAlign.Start)
   }
 }

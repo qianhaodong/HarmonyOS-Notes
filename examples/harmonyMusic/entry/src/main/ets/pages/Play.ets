@@ -1,20 +1,32 @@
-import { PlayStateType } from '../models';
+import { PlayStateType, SongItemType } from '../models';
 import AVPlayerClass from '../utils/AVPlayerClass';
 import { emitter } from '@kit.BasicServicesKit';
 import { defaultPlayState, EmitEventType } from '../constants/EventConstants';
+import { PlayList } from './components/PlayList';
 
 @Entry
 @Component
 struct Play {
+  @State playList: SongItemType[] = [];
   @State randomColor: string = 'rgb(0, 0, 0)';
   @State randomMoveX: number = 0;
   @State randomMoveY: number = 0;
+  @State panelShow: boolean = false;
 
   @State @Watch('handleAnimate') playState: PlayStateType = defaultPlayState;
+
+  @Builder MoreBuilderParm() {
+    Image($r('app.media.ic_close'))
+      .width(16)
+      .onClick(() => {
+        this.panelShow = false;
+      })
+  }
 
   aboutToAppear(): void {
     emitter.on({ eventId: EmitEventType.UPDATE_STATE }, (data) => {
       this.playState = data.data?.playState;
+      this.playList = this.playState.playList;
     })
   }
 
@@ -36,7 +48,7 @@ struct Play {
   }
 
   build() {
-    Stack() {
+    Stack({ alignContent: Alignment.Bottom }) {
       // 模糊背景
       Image(this.playState.img)
         .width('100%')
@@ -256,6 +268,9 @@ struct Play {
             Image($r('app.media.ic_song_list'))
               .fillColor(Color.White)
               .width(30)
+              .onClick(() => {
+                this.panelShow = true;
+              })
           }
           .width('100%')
           .padding({ bottom: 24 })
@@ -265,6 +280,38 @@ struct Play {
       .width('100%')
       .height('100%')
       .backgroundColor(Color.Transparent)
+
+      // 播放列表
+      Panel(this.panelShow) {
+        PlayList({
+          playList: this.playList,
+          deletable: true,
+          MoreBuilderParm: () => {
+            this.MoreBuilderParm()
+          },
+          delPlayItem: (id: string) => {
+            console.log('Play-delPlayItem: ', id)
+            // 删除播放列表歌曲
+            AVPlayerClass.delPlayItem(id);
+          }
+        })
+      }
+      .borderRadius({
+        topLeft: 12,
+        topRight: 12,
+      })
+      .dragBar(false)
+
+      /*PlayList({
+        playList: this.playList,
+        MoreBuilderParm: () => { this.MoreBuilderParm() },
+        emitClick: (index: number) => {
+          this.playListHide = true;
+        }
+      })
+        .width('100%')
+        .height('60%')
+        .visibility(this.playListHide ? Visibility.Hidden : Visibility.Visible)*/
     }
     .width('100%')
     .height('100%')

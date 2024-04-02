@@ -1,7 +1,8 @@
 import media from '@ohos.multimedia.media';
 import { PlayStateType, SongItemType } from '../models';
-import { emitter } from '@kit.BasicServicesKit';
+import { BusinessError, emitter } from '@kit.BasicServicesKit';
 import { EmitEventType } from '../constants/EventConstants';
+import { router } from '@kit.ArkUI';
 
 export default class AVPlayerClass {
   // 1、创建一个播放器
@@ -25,6 +26,11 @@ export default class AVPlayerClass {
   static async init() {
     AVPlayerClass.player = await media.createAVPlayer();
 
+    // 监听播放器错误信息
+    AVPlayerClass.player.on('error', (err: BusinessError) => {
+      console.error(`Invoke avPlayer failed, code is ${err.code}, message is ${err.message}`);
+    })
+
     // 监听播放状态事件（状态机）
     AVPlayerClass.player.on('stateChange', (state: string, reason: media.StateChangeReason) => {
       switch (state) {
@@ -36,8 +42,12 @@ export default class AVPlayerClass {
           AVPlayerClass.isPlay = true;
           break;
         case 'completed':
-          // TODO - 判断播放模式
-          AVPlayerClass.next();
+          // 判断是单曲循环
+          if (AVPlayerClass.playMode === 'repeat') {
+            AVPlayerClass.singlePlay(AVPlayerClass.playList[AVPlayerClass.playIndex]);
+          } else{
+            AVPlayerClass.next();
+          }
           break;
         default:
           break;
@@ -66,7 +76,6 @@ export default class AVPlayerClass {
 
   // 单曲播放
   static singlePlay(song: SongItemType) {
-    // 添加到播放列表，并从头播放
     if (AVPlayerClass.player) {
       // 判断歌曲是否存在
       const cIndex = AVPlayerClass.playList.findIndex(item => item.id === song.id);
@@ -87,6 +96,7 @@ export default class AVPlayerClass {
           AVPlayerClass.changePlay()
         }
       } else {
+        // 不存在，则添加到播放列表，并从头播放
         AVPlayerClass.playList.unshift(song);
         AVPlayerClass.playIndex = 0;
         AVPlayerClass.changePlay()
@@ -127,6 +137,8 @@ export default class AVPlayerClass {
         // 随机播放
         const len = AVPlayerClass.playList.length;
         let index = 0;
+
+        // 妙啊
         do {
           index = Math.floor(Math.random() * len);
         } while (index === AVPlayerClass.playIndex)
@@ -183,6 +195,47 @@ export default class AVPlayerClass {
     AVPlayerClass.updateState();
   }
 
+  // 删除播放列表歌曲
+  static delPlayItem(id: string) {
+    const index = AVPlayerClass.playList.findIndex((item: SongItemType) => item.id === id);
+    if (index !== -1) {
+      console.log('AVPlayerClass-delPlayItem: ', index)
+      // 删除歌曲
+      AVPlayerClass.playList.splice(index, 1);
+
+      // 判断是否是播放中歌曲
+      if (AVPlayerClass.playIndex === index) {
+        // 判断是播放中歌曲
+        // 判断删除完后，是否还有歌曲
+        if (AVPlayerClass.playList.length) {
+          // 判断还有歌曲，则播放当前索引歌曲，如果当前歌曲是最后一首，则播放最后一首
+          if (AVPlayerClass.playIndex > AVPlayerClass.playList.length - 1) {
+            AVPlayerClass.playIndex = AVPlayerClass.playList.length - 1;
+          }
+          AVPlayerClass.singlePlay(AVPlayerClass.playList[AVPlayerClass.playIndex]);
+        } else {
+          // 判断没有歌曲了
+          // 重置播放器状态
+          AVPlayerClass.player?.reset();
+          // 返回首页
+          router.replaceUrl({
+            url: 'pages/Index'
+          })
+        }
+      } else {
+        // 判断不是播放中歌曲
+        // 判断是删除播放歌曲前面的歌曲
+        if (index < AVPlayerClass.playIndex) {
+          // 删除后，当前播放索引-1
+          AVPlayerClass.playIndex--;
+        }
+      }
+
+      // 更新页面状态
+      AVPlayerClass.updateState();
+    }
+  }
+
   // 更新页面状态
   static updateState() {
     // 发布事件，传递数据到各页面
@@ -190,10 +243,10 @@ export default class AVPlayerClass {
     emitter.emit({ eventId: EmitEventType.UPDATE_STATE }, {
       data: {
         playState: {
-          img: currentItem.img,
-          name: currentItem.name,
-          author: currentItem.author,
-          url: currentItem.url,
+          img: currentItem?.img || '',
+          name: currentItem?.name || '',
+          author: currentItem?.author || '',
+          url: currentItem?.url || '',
           time: AVPlayerClass.time,
           duration: AVPlayerClass.duration,
           isPlay: AVPlayerClass.isPlay,
