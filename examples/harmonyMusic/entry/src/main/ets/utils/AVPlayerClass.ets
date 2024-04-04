@@ -196,7 +196,7 @@ export default class AVPlayerClass {
   }
 
   // 删除播放列表歌曲
-  static delPlayItem(id: string) {
+  static async delPlayItem(id: string) {
     const index = AVPlayerClass.playList.findIndex((item: SongItemType) => item.id === id);
     if (index !== -1) {
       console.log('AVPlayerClass-delPlayItem: ', index)
@@ -216,11 +216,10 @@ export default class AVPlayerClass {
         } else {
           // 判断没有歌曲了
           // 重置播放器状态
-          AVPlayerClass.player?.reset();
-          // 返回首页
-          router.replaceUrl({
-            url: 'pages/Index'
-          })
+          await AVPlayerClass.player?.reset();
+
+          // 返回上一级页面
+          router.back()
         }
       } else {
         // 判断不是播放中歌曲

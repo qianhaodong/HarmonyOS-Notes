@@ -4,6 +4,7 @@
     "pages/DemoState",
     "pages/DemoProp",
     "pages/DemoLink",
-    "pages/DemoProvide"
+    "pages/DemoProvide",
+    "pages/DemoObjectLink"
   ]
 }

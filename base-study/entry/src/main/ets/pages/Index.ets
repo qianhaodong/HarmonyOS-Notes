@@ -25,6 +25,10 @@ struct Index {
       name: '@Provide、@Consume装饰器-示例',
       pageUrl: 'pages/DemoProvide'
     },
+    {
+      name: '@Observed、@ObjectLink装饰器-示例',
+      pageUrl: 'pages/DemoObjectLink'
+    },
   ];
 
   build() {
