@@ -1,7 +1,7 @@
 import { AbilityConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
-import { storage } from '../utils/common';
+import { storage, AppDataType } from '../utils/common';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
@@ -15,6 +15,9 @@ export default class EntryAbility extends UIAbility {
   onWindowStageCreate(windowStage: window.WindowStage): void {
     // Main window is created, set main page for this ability
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+
+    // 初始化 AppStorage 数据，AppStorage 数据是存储在内存中，杀掉应用进程后，则销毁数据。
+    AppStorage.setOrCreate('appData', new AppDataType('怕怕古', 'AppStorage'));
 
     windowStage.loadContent('pages/Index', storage, (err, data) => {
       if (err.code) {

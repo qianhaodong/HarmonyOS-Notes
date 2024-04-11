@@ -1,4 +1,5 @@
 import { router } from '@kit.ArkUI';
+import { AppDataType } from '../utils/common';
 
 interface DemoType {
   type: string
@@ -11,6 +12,7 @@ const storage = LocalStorage.getShared();
 @Entry(storage)
 @Component
 struct Index {
+  @StorageProp('appData') appData: AppDataType = new AppDataType('', '');
   @LocalStorageProp('message') message: string = '111';
 
   demoList: DemoType[] = [
@@ -43,7 +45,17 @@ struct Index {
       type: 'DemoLocalStorage',
       name: 'LocalStorage',
       pageUrl: 'pages/DemoLocalStorage'
-    }
+    },
+    {
+      type: 'DemoAppStorage',
+      name: 'AppStorage',
+      pageUrl: 'pages/DemoAppStorage'
+    },
+    {
+      type: 'DemoPersistentStorage',
+      name: 'PersistentStorage',
+      pageUrl: 'pages/DemoPersistentStorage'
+    },
   ];
 
   build() {
@@ -56,6 +68,9 @@ struct Index {
             })
           })
       })
+
+      Text(`AppStorage: ${this.appData.name}`)
+        .fontSize(20)
     }
     .width('100%')
     .height('100%')
