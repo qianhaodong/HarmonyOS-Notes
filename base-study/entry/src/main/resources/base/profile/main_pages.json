@@ -5,6 +5,7 @@
     "pages/DemoProp",
     "pages/DemoLink",
     "pages/DemoProvide",
-    "pages/DemoObjectLink"
+    "pages/DemoObjectLink",
+    "pages/DemoLocalStorage"
   ]
 }
