@@ -9,6 +9,9 @@ import { PlayerNav } from './components/PlayerNav';
 import { router } from '@kit.ArkUI';
 import { emitter } from '@kit.BasicServicesKit';
 import { EmitEventType, defaultPlayState } from '../constants/EventConstants';
+import { StoreManager } from '../utils/Store';
+
+// const preferencesData =
 
 @Entry
 @Component
@@ -42,6 +45,10 @@ struct Index {
   }
 
   aboutToAppear(): void {
+    // 获取首选项数据
+    this.playState = StoreManager.getData();
+
+    // 订阅消息，获取数据
     emitter.on({ eventId: EmitEventType.UPDATE_STATE }, (data) => {
       this.playState = data.data?.playState;
     })

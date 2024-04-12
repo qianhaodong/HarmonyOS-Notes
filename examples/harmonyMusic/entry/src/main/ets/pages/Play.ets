@@ -3,6 +3,7 @@ import AVPlayerClass from '../utils/AVPlayerClass';
 import { emitter } from '@kit.BasicServicesKit';
 import { defaultPlayState, EmitEventType } from '../constants/EventConstants';
 import { PlayList } from './components/PlayList';
+import { StoreManager } from '../utils/Store';
 
 @Entry
 @Component
@@ -24,6 +25,10 @@ struct Play {
   }
 
   aboutToAppear(): void {
+    // 获取首选项数据
+    this.playState = StoreManager.getData();
+    this.playList = this.playState.playList;
+
     emitter.on({ eventId: EmitEventType.UPDATE_STATE }, (data) => {
       this.playState = data.data?.playState;
       this.playList = this.playState.playList;

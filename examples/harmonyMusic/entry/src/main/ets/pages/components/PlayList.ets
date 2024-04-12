@@ -2,6 +2,7 @@ import { PlayStateType, SongItemType } from '../../models'
 import AVPlayerClass from '../../utils/AVPlayerClass'
 import { emitter } from '@kit.BasicServicesKit';
 import { EmitEventType } from '../../constants/EventConstants';
+import { StoreManager } from '../../utils/Store';
 
 @Extend(Text) function textStyle() {
   .width(20)
@@ -33,7 +34,13 @@ struct PlayList {
   emitClick: (index: number) => void = () => {}
   delPlayItem: (id: string) => void = () => {}
 
-  aboutToAppear(): void {
+  aboutToAppear() {
+    // 获取首选项数据
+    const playState = StoreManager.getData();
+    if (playState.playList.length) {
+      this.playId = playState.playList[playState.playIndex].id;
+    }
+
     emitter.on({ eventId: EmitEventType.UPDATE_STATE }, (data) => {
       const playState: PlayStateType = data.data?.playState;
       if (playState.playList.length) {

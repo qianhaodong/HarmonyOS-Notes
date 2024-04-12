@@ -1,8 +1,9 @@
 import media from '@ohos.multimedia.media';
 import { PlayStateType, SongItemType } from '../models';
 import { BusinessError, emitter } from '@kit.BasicServicesKit';
-import { EmitEventType } from '../constants/EventConstants';
+import { defaultPlayState, EmitEventType } from '../constants/EventConstants';
 import { router } from '@kit.ArkUI';
+import { StoreManager } from './Store';
 
 export default class AVPlayerClass {
   // 1、创建一个播放器
@@ -21,10 +22,30 @@ export default class AVPlayerClass {
   static playList: SongItemType[] = []
   // 当前播放歌曲索引
   static playIndex: number = 0
+  // 是否是缓存数据
+  // static isCache: boolean = false
 
   // 2、初始化
-  static async init() {
+  static async init(data: PlayStateType) {
+    // AVPlayerClass.isCache = false;
     AVPlayerClass.player = await media.createAVPlayer();
+
+    // 初始化首选项数据
+    if (data) {
+      // AVPlayerClass.isCache = true;
+      const playState: PlayStateType = data;
+      playState.isPlay = false;
+
+      AVPlayerClass.isPlay = false;
+      AVPlayerClass.playMode = playState.playMode;
+      AVPlayerClass.duration = playState.duration;
+      AVPlayerClass.time = playState.time;
+      AVPlayerClass.playList = playState.playList;
+      AVPlayerClass.playIndex = playState.playIndex;
+
+      // 更新首选项
+      await StoreManager.setData(playState);
+    }
 
     // 监听播放器错误信息
     AVPlayerClass.player.on('error', (err: BusinessError) => {
@@ -38,8 +59,9 @@ export default class AVPlayerClass {
           AVPlayerClass.player?.prepare();
           break;
         case 'prepared':
-          AVPlayerClass.player?.play();
-          AVPlayerClass.isPlay = true;
+          // AVPlayerClass.player?.play();
+          // AVPlayerClass.isPlay = true;
+          AVPlayerClass.seekSlider(AVPlayerClass.time);
           break;
         case 'completed':
           // 判断是单曲循环
@@ -62,9 +84,11 @@ export default class AVPlayerClass {
 
     // 监听播放进度事件，获取当前播放进度
     AVPlayerClass.player.on('timeUpdate', (time: number) => {
-      // console.log('[player]:durationUpdate >> ', time)
-      AVPlayerClass.time = time;
-      AVPlayerClass.updateState();
+      // console.log('[player]:onTimeUpdate >> ', time)
+      if (time !== 0 && time != AVPlayerClass.time) {
+        AVPlayerClass.time = time;
+        AVPlayerClass.updateState();
+      }
     })
 
     // 监听设置播放时长
@@ -91,9 +115,14 @@ export default class AVPlayerClass {
             AVPlayerClass.seekSlider(AVPlayerClass.time);
           }
         } else {
-          // 否：切换歌曲（切换索引）
-          AVPlayerClass.playIndex = cIndex;
-          AVPlayerClass.changePlay()
+          // 断点续播
+          if (AVPlayerClass.player.url === '') {
+            AVPlayerClass.player.url = song.url;
+          } else {
+            // 否：切换歌曲（切换索引）
+            AVPlayerClass.playIndex = cIndex;
+            AVPlayerClass.changePlay()
+          }
         }
       } else {
         // 不存在，则添加到播放列表，并从头播放
@@ -236,24 +265,30 @@ export default class AVPlayerClass {
   }
 
   // 更新页面状态
-  static updateState() {
+  static async updateState() {
     // 发布事件，传递数据到各页面
     const currentItem = AVPlayerClass.playList[AVPlayerClass.playIndex];
+    const playState: PlayStateType = {
+      img: currentItem?.img || '',
+      name: currentItem?.name || '',
+      author: currentItem?.author || '',
+      url: currentItem?.url || '',
+      time: AVPlayerClass.time,
+      duration: AVPlayerClass.duration,
+      isPlay: AVPlayerClass.isPlay,
+      playMode: AVPlayerClass.playMode,
+      playIndex: AVPlayerClass.playIndex,
+      playList: AVPlayerClass.playList,
+    };
+
+    // 事件派发
     emitter.emit({ eventId: EmitEventType.UPDATE_STATE }, {
       data: {
-        playState: {
-          img: currentItem?.img || '',
-          name: currentItem?.name || '',
-          author: currentItem?.author || '',
-          url: currentItem?.url || '',
-          time: AVPlayerClass.time,
-          duration: AVPlayerClass.duration,
-          isPlay: AVPlayerClass.isPlay,
-          playMode: AVPlayerClass.playMode,
-          playIndex: AVPlayerClass.playIndex,
-          playList: AVPlayerClass.playList,
-        } as PlayStateType
+        playState
       }
     });
+
+    // 保存数据到首选项，持久化存储；如果没有播放列表，则重置缓存数据
+    await StoreManager.setData(playState.playList.length ? playState : defaultPlayState);
   }
 }
