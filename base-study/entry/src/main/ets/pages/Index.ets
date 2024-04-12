@@ -1,5 +1,6 @@
 import { router } from '@kit.ArkUI';
 import { AppDataType } from '../utils/common';
+import { StoreManager } from '../utils/store';
 
 interface DemoType {
   type: string
@@ -60,6 +61,12 @@ struct Index {
 
   build() {
     Column({ space: 10 }) {
+      Button('退出')
+        .onClick(async () => {
+          await StoreManager.setToken('');
+          router.back()
+        })
+
       ForEach(this.demoList, (item: DemoType) => {
         Button(item.type === 'DemoLocalStorage' ? `${item.name}-${this.message}` : item.name)
           .onClick(() => {

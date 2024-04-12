@@ -2,6 +2,7 @@ import { AbilityConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { storage, AppDataType } from '../utils/common';
+import { StoreManager } from '../utils/store';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
@@ -19,7 +20,13 @@ export default class EntryAbility extends UIAbility {
     // 初始化 AppStorage 数据，AppStorage 数据是存储在内存中，杀掉应用进程后，则销毁数据。
     AppStorage.setOrCreate('appData', new AppDataType('怕怕古', 'AppStorage'));
 
-    windowStage.loadContent('pages/Index', storage, (err, data) => {
+    let pageUrl = 'pages/Login';
+    const token = StoreManager.getToken(this.context) as string;
+    if (token) {
+      pageUrl = 'pages/Index'
+    }
+
+    windowStage.loadContent(pageUrl, storage, (err, data) => {
       if (err.code) {
         hilog.error(0x0000, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err) ?? '');
         return;
