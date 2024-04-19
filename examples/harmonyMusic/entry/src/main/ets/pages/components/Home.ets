@@ -1,6 +1,7 @@
 import { ButtonListType, SongItemType } from '../../models';
 import { songs } from '../../constants';
 import { PlayList } from './PlayList';
+import AVPlayerClass from '../../utils/AVPlayerClass';
 
 @Component
 struct Home {
@@ -78,7 +79,11 @@ struct Home {
       .padding({ top: 30, right: 16, bottom: 30, left: 16 })
 
       PlayList({
-        playList: this.playList
+        title: '全部播放',
+        playList: this.playList,
+        emitTitleClick: () => {
+          AVPlayerClass.multiplePlay(this.playList, 0);
+        }
       })
         .layoutWeight(1)
     }

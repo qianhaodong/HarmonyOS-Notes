@@ -289,6 +289,7 @@ struct Play {
       // 播放列表
       Panel(this.panelShow) {
         PlayList({
+          title: '播放列表',
           playList: this.playList,
           deletable: true,
           MoreBuilderParm: () => {

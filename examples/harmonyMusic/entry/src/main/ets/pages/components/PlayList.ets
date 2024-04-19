@@ -12,6 +12,7 @@ import { StoreManager } from '../../utils/Store';
 
 @Component
 struct PlayList {
+  @Prop title: string = '';
   @Prop deletable: boolean = false;
   @Link playList: SongItemType[];
 
@@ -32,6 +33,7 @@ struct PlayList {
   }
 
   emitClick: (index: number) => void = () => {}
+  emitTitleClick: () => void = () => {}
   delPlayItem: (id: string) => void = () => {}
 
   aboutToAppear() {
@@ -56,9 +58,12 @@ struct PlayList {
           Image($r('app.media.ic_play'))
             .width(16)
             .fillColor('#ff5186')
-          Text(`全部播放(${this.playList.length})`)
+          Text(`${this.title}(${this.playList.length})`)
             .fontSize(14)
             .fontColor($r('app.color.color_white'))
+            .onClick(() => {
+              this.emitTitleClick();
+            })
         }
         .layoutWeight(1)
 

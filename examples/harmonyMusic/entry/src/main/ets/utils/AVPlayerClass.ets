@@ -133,6 +133,13 @@ export default class AVPlayerClass {
     }
   }
 
+  // 列表播放
+  static multiplePlay(songs: SongItemType[], index: number) {
+    AVPlayerClass.playList = songs;
+    AVPlayerClass.playIndex = index;
+    AVPlayerClass.singlePlay(AVPlayerClass.playList[AVPlayerClass.playIndex]);
+  }
+
   // 切换歌曲
   static async changePlay() {
     if (AVPlayerClass.player) {

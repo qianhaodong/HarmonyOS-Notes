@@ -1,5 +1,6 @@
 import { momentList } from '../../constants';
 import { ButtonListType, MomentListType } from '../../models';
+import AVPlayerClass from '../../utils/AVPlayerClass';
 
 @Component
 struct Moment {
@@ -74,6 +75,9 @@ struct Moment {
                     .width(20)
                     .fillColor('#ececec')
                     .margin({ right: 12 })
+                    .onClick(() => {
+                      AVPlayerClass.singlePlay(item.song);
+                    })
                 }
                 .borderRadius(8)
                 .clip(true)

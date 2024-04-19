@@ -1,5 +1,6 @@
 import { SongItemType } from '../../models'
 import { songs } from '../../constants';
+import AVPlayerClass from '../../utils/AVPlayerClass';
 
 @Component
 struct Find {
@@ -35,6 +36,9 @@ struct Find {
             }
           }
           .padding({ bottom: index === songs.length - 1 ? 20 : 0 })
+          .onClick(() => {
+            AVPlayerClass.multiplePlay(songs, index);
+          })
         })
       }
       .layoutWeight(1)

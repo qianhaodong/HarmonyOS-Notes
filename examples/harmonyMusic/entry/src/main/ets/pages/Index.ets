@@ -11,8 +11,6 @@ import { emitter } from '@kit.BasicServicesKit';
 import { EmitEventType, defaultPlayState } from '../constants/EventConstants';
 import { StoreManager } from '../utils/Store';
 
-// const preferencesData =
-
 @Entry
 @Component
 struct Index {
