@@ -9,6 +9,7 @@
     "pages/DemoLocalStorage",
     "pages/DemoAppStorage",
     "pages/DemoPersistentStorage",
-    "pages/Login"
+    "pages/Login",
+    "pages/DemoUpRefresh"
   ]
 }

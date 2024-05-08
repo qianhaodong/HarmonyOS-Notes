@@ -57,6 +57,11 @@ struct Index {
       name: 'PersistentStorage',
       pageUrl: 'pages/DemoPersistentStorage'
     },
+    {
+      type: 'DemoUpRefresh',
+      name: '上拉加载',
+      pageUrl: 'pages/DemoUpRefresh'
+    },
   ];
 
   build() {

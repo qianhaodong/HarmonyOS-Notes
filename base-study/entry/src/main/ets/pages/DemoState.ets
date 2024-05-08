@@ -1,6 +1,6 @@
 @Entry
 @Component
-struct Index {
+struct DemoState {
   @State countState: number = 0;
   @State countProp: number = 0;
 
