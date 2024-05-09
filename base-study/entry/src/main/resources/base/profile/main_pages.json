@@ -10,6 +10,7 @@
     "pages/DemoAppStorage",
     "pages/DemoPersistentStorage",
     "pages/Login",
-    "pages/DemoUpRefresh"
+    "pages/DemoUpRefresh",
+    "pages/DemoPageLifeCycle"
   ]
 }

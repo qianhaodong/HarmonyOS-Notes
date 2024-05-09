@@ -62,6 +62,11 @@ struct Index {
       name: '上拉加载',
       pageUrl: 'pages/DemoUpRefresh'
     },
+    {
+      type: 'DemoPageLifeCycle',
+      name: '页面生命周期',
+      pageUrl: 'pages/DemoPageLifeCycle'
+    },
   ];
 
   build() {
